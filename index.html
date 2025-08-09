@@ -1,54 +1,126 @@
-<!doctype html>
-<html lang="it">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>OpereInComputer — Simulazioni di Fisica</title>
-  <meta name="description" content="Sito didattico con simulazioni interattive di fluidodinamica e meccanica quantistica.">
-  <link rel="stylesheet" href="styles.css">
-</head>
-<body>
-  <header class="site-header">
-    <div class="container">
-      <h1 id="site-title">OpereInComputer</h1>
-      <nav>
-        <button id="btn-fluid" class="navbtn">Fluidodinamica</button>
-        <button id="btn-quantum" class="navbtn">Meccanica Quantistica</button>
-      </nav>
-    </div>
-  </header>
+const canvas = document.getElementById('simCanvas');
+const ctx = canvas.getContext('2d');
+const dpr = window.devicePixelRatio || 1;
 
-  <main class="container">
-    <section class="hero">
-      <h2>Impara con piccole simulazioni interattive</h2>
-      <p>Inizia con una demo sotto: muovi il mouse per interagire. In seguito potremo aggiungere spiegazioni, esercizi e quiz.</p>
-    </section>
+// Imposto dimensioni canvas con scaling per qualità HiDPI
+function resizeCanvas() {
+  const rect = canvas.getBoundingClientRect();
+  canvas.width = rect.width * dpr;
+  canvas.height = rect.height * dpr;
+  ctx.setTransform(1, 0, 0, 1, 0, 0); // reset transform
+  ctx.scale(dpr, dpr);
+}
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
 
-    <section class="simwrap">
-      <div class="controls">
-        <label>Demo:
-          <select id="demo-select">
-            <option value="fluid">Fluidodinamica (particle flow)</option>
-            <option value="quantum">Meccanica quantistica (onda 1D)</option>
-          </select>
-        </label>
-        <button id="btn-reset">Reset</button>
-      </div>
+// Particelle demo
+class Particle {
+  constructor(x, y) {
+    this.x = x;
+    this.y = y;
+    this.radius = 8;
+    this.color = 'rgba(30,144,255,0.7)';
+    this.vx = (Math.random() - 0.5) * 1.5;
+    this.vy = (Math.random() - 0.5) * 1.5;
+  }
 
-      <div class="canvaswrap">
-        <canvas id="simCanvas"></canvas>
-      </div>
+  draw(ctx) {
+    ctx.beginPath();
+    ctx.fillStyle = this.color;
+    ctx.shadowColor = 'rgba(0,0,0,0.3)';
+    ctx.shadowBlur = 5;
+    ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+  }
 
-      <div class="caption" id="caption">Demo: Fluidodinamica — usa il mouse per spostare le particelle.</div>
-    </section>
+  update(width, height) {
+    this.x += this.vx;
+    this.y += this.vy;
 
-   
-  </main>
+    // Rimbalzo ai bordi
+    if(this.x < this.radius || this.x > width - this.radius) this.vx *= -1;
+    if(this.y < this.radius || this.y > height - this.radius) this.vy *= -1;
+  }
+}
 
-  <footer class="site-footer container">
-    <small>Creato per te — pronto per essere personalizzato. — &copy; 2025</small>
-  </footer>
+// Setup particelle
+const particles = [];
+const PARTICLE_COUNT = 30;
 
-  <script src="script.js" type="module"></script>
-</body>
-</html>
+function initParticles() {
+  particles.length = 0;
+  const width = canvas.clientWidth;
+  const height = canvas.clientHeight;
+  for(let i=0; i < PARTICLE_COUNT; i++) {
+    const x = Math.random() * (width - 20) + 10;
+    const y = Math.random() * (height - 20) + 10;
+    particles.push(new Particle(x, y));
+  }
+}
+initParticles();
+
+// Drag & drop variabili
+let draggingParticle = null;
+let offsetX = 0;
+let offsetY = 0;
+
+canvas.addEventListener('mousedown', (e) => {
+  const rect = canvas.getBoundingClientRect();
+  const mouseX = e.clientX - rect.left;
+  const mouseY = e.clientY - rect.top;
+
+  // Controllo se clicco su una particella
+  for(const p of particles) {
+    const dx = mouseX - p.x;
+    const dy = mouseY - p.y;
+    if(Math.sqrt(dx*dx + dy*dy) < p.radius) {
+      draggingParticle = p;
+      offsetX = dx;
+      offsetY = dy;
+      break;
+    }
+  }
+});
+
+canvas.addEventListener('mousemove', (e) => {
+  if(draggingParticle) {
+    const rect = canvas.getBoundingClientRect();
+    draggingParticle.x = e.clientX - rect.left - offsetX;
+    draggingParticle.y = e.clientY - rect.top - offsetY;
+  }
+});
+
+canvas.addEventListener('mouseup', () => {
+  draggingParticle = null;
+});
+
+canvas.addEventListener('mouseleave', () => {
+  draggingParticle = null;
+});
+
+// Animazione
+function animate() {
+  const width = canvas.clientWidth;
+  const height = canvas.clientHeight;
+
+  ctx.clearRect(0, 0, width, height);
+
+  for(const p of particles) {
+    if(p !== draggingParticle) {
+      p.update(width, height);
+    }
+    p.draw(ctx);
+  }
+
+  // Caption update (opzionale)
+  document.getElementById('caption').textContent = "Demo: Fluidodinamica — usa il mouse per spostare le particelle.";
+
+  requestAnimationFrame(animate);
+}
+animate();
+
+// Reset button
+document.getElementById('btn-reset').addEventListener('click', () => {
+  initParticles();
+});
