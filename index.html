@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>OpereInComputer — Simulazioni di Fisica</title>
+  <meta name="description" content="Sito didattico con simulazioni interattive di fluidodinamica e meccanica quantistica.">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <h1 id="site-title">OpereInComputer</h1>
+      <nav>
+        <button id="btn-fluid" class="navbtn">Fluidodinamica</button>
+        <button id="btn-quantum" class="navbtn">Meccanica Quantistica</button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="hero">
+      <h2>Impara con piccole simulazioni interattive</h2>
+      <p>Inizia con una demo sotto: muovi il mouse per interagire. In seguito potremo aggiungere spiegazioni, esercizi e quiz.</p>
+    </section>
+
+    <section class="simwrap">
+      <div class="controls">
+        <label>Demo:
+          <select id="demo-select">
+            <option value="fluid">Fluidodinamica (particle flow)</option>
+            <option value="quantum">Meccanica quantistica (onda 1D)</option>
+          </select>
+        </label>
+        <button id="btn-reset">Reset</button>
+      </div>
+
+      <div class="canvaswrap">
+        <canvas id="simCanvas"></canvas>
+      </div>
+
+      <div class="caption" id="caption">Demo: Fluidodinamica — usa il mouse per spostare le particelle.</div>
+    </section>
+
+    <section class="howto">
+      <h3>Come mettere online (GitHub Pages)</h3>
+      <ol>
+        <li>Crea un account su <a href="https://github.com" target="_blank" rel="noopener">GitHub</a> se non l'hai già.</li>
+        <li>Crea un nuovo repository con nome <code>TUOUSERNAME.github.io</code> (sostituisci TUOUSERNAME).</li>
+        <li>Carica i file di questo pacchetto (index.html, styles.css, script.js, README.md) nella root del repository.</li>
+        <li>Visita <code>https://TUOUSERNAME.github.io</code> dopo qualche minuto.</li>
+      </ol>
+    </section>
+  </main>
+
+  <footer class="site-footer container">
+    <small>Creato per te — pronto per essere personalizzato. — &copy; 2025</small>
+  </footer>
+
+  <script src="script.js" type="module"></script>
+</body>
+</html>
