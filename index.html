@@ -1,62 +1,644 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="it">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>OpereInComputer — Simulazioni di Fisica</title>
-  <meta name="description" content="Sito didattico con simulazioni interattive di fluidodinamica e meccanica quantistica.">
-  <link rel="stylesheet" href="styles.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema NUF 5MCM - Schema Stati</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .mode-selector {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 10px;
+            padding: 20px;
+            background: #f8f9fa;
+        }
+        
+        .mode-btn {
+            padding: 15px 20px;
+            border: 2px solid transparent;
+            border-radius: 10px;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            background: #e0e0e0;
+            color: #333;
+        }
+        
+        .mode-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+        }
+        
+        .mode-btn.active {
+            transform: scale(1.05);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+            border: 2px solid white;
+        }
+        
+        .btn-filtration { background: #3498db; color: white; }
+        .btn-filtration.active { background: #2980b9; }
+        
+        .btn-bw { background: #e67e22; color: white; }
+        .btn-bw.active { background: #d35400; }
+        
+        .btn-ceb { background: #9b59b6; color: white; }
+        .btn-ceb.active { background: #8e44ad; }
+        
+        .btn-prefilter { background: #16a085; color: white; }
+        .btn-prefilter.active { background: #138d75; }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .mode-info {
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            border-left: 5px solid #2196f3;
+        }
+        
+        .mode-info h2 {
+            color: #1565c0;
+            margin-bottom: 10px;
+            font-size: 2em;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .info-box {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .info-box strong {
+            color: #1565c0;
+            display: block;
+            margin-bottom: 5px;
+        }
+        
+        .valve-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 30px 0;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        .valve-table thead {
+            background: linear-gradient(135deg, #37474f 0%, #263238 100%);
+            color: white;
+        }
+        
+        .valve-table th {
+            padding: 18px;
+            text-align: left;
+            font-size: 1.1em;
+        }
+        
+        .valve-table td {
+            padding: 15px 18px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .valve-table tbody tr:nth-child(even) {
+            background: #fafafa;
+        }
+        
+        .valve-table tbody tr:hover {
+            background: #f0f0f0;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-weight: bold;
+            color: white;
+            text-transform: uppercase;
+            font-size: 0.9em;
+        }
+        
+        .status-open { background: #4caf50; }
+        .status-closed { background: #f44336; }
+        .status-filtration { background: #2196f3; }
+        .status-backwash { background: #ff9800; }
+        .status-prefilter { background: #9c27b0; }
+        
+        .indicator {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin: 0 auto;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.2);
+        }
+        
+        .indicator-open { background: #4caf50; }
+        .indicator-closed { background: #f44336; }
+        .indicator-filtration { background: #2196f3; }
+        .indicator-backwash { background: #ff9800; }
+        .indicator-prefilter { background: #9c27b0; }
+        
+        .visual-diagram {
+            background: linear-gradient(135deg, #e8eaf6 0%, #c5cae9 100%);
+            padding: 40px;
+            border-radius: 15px;
+            margin: 30px 0;
+        }
+        
+        .visual-diagram h3 {
+            text-align: center;
+            color: #283593;
+            font-size: 1.8em;
+            margin-bottom: 30px;
+        }
+        
+        .flow-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 25px;
+        }
+        
+        .flow-row {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .flow-box {
+            padding: 20px 30px;
+            border-radius: 12px;
+            font-weight: bold;
+            font-size: 1.1em;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            min-width: 150px;
+            text-align: center;
+        }
+        
+        .flow-valve {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            font-size: 0.9em;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+        
+        .arrow {
+            font-size: 2em;
+            color: #1976d2;
+            font-weight: bold;
+        }
+        
+        .module-container {
+            display: flex;
+            gap: 40px;
+            justify-content: center;
+            margin: 20px 0;
+        }
+        
+        .module-box {
+            text-align: center;
+        }
+        
+        .module-visual {
+            width: 140px;
+            height: 160px;
+            border-radius: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+            margin-bottom: 10px;
+        }
+        
+        .legend {
+            background: #f5f5f5;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 30px;
+        }
+        
+        .legend h4 {
+            margin-bottom: 15px;
+            color: #424242;
+            font-size: 1.3em;
+        }
+        
+        .legend-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .legend-color {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .alert-box {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+        
+        .alert-box h4 {
+            color: #856404;
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+        
+        .alert-box ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        
+        .alert-box li {
+            color: #856404;
+            padding: 5px 0;
+        }
+    </style>
 </head>
 <body>
-  <header class="site-header">
     <div class="container">
-      <h1 id="site-title">OpereInComputer</h1>
-      <nav>
-        <button id="btn-fluid" class="navbtn">Fluidodinamica</button>
-        <button id="btn-quantum" class="navbtn">Meccanica Quantistica</button>
-      </nav>
+        <div class="header">
+            <h1>🔧 Sistema NUF 5 MCM</h1>
+            <p>Schema Interattivo Stati Valvole e Flussi</p>
+            <p style="font-size: 0.9em; margin-top: 10px;">Capacità: 5 m³/h (20 GPM) | 80 Membrane Totali (2×40)</p>
+        </div>
+        
+        <div class="mode-selector">
+            <button class="mode-btn btn-filtration active" onclick="changeMode('filtration', this)">
+                🔵 FILTRAZIONE
+            </button>
+            <button class="mode-btn btn-bw" onclick="changeMode('bw1', this)">
+                🟠 BW MODULO #1
+            </button>
+            <button class="mode-btn btn-bw" onclick="changeMode('bw2', this)">
+                🟠 BW MODULO #2
+            </button>
+            <button class="mode-btn btn-ceb" onclick="changeMode('ceb_dosing1', this)">
+                🟣 CEB DOSAGGIO M1
+            </button>
+            <button class="mode-btn btn-ceb" onclick="changeMode('ceb_dosing2', this)">
+                🟣 CEB DOSAGGIO M2
+            </button>
+            <button class="mode-btn btn-ceb" onclick="changeMode('ceb_soaking', this)">
+                🟣 CEB AMMOLLO
+            </button>
+            <button class="mode-btn btn-ceb" onclick="changeMode('ceb_rinsing1', this)">
+                🟣 CEB RISCIACQUO M1
+            </button>
+            <button class="mode-btn btn-ceb" onclick="changeMode('ceb_rinsing2', this)">
+                🟣 CEB RISCIACQUO M2
+            </button>
+            <button class="mode-btn btn-prefilter" onclick="changeMode('prefilter_bw', this)">
+                🟢 PRE-FILTRO BW
+            </button>
+        </div>
+        
+        <div class="content">
+            <div id="mode-info"></div>
+            <div id="valve-table"></div>
+            <div id="visual-diagram"></div>
+            
+            <div class="legend">
+                <h4>📋 Legenda Colori Stati</h4>
+                <div class="legend-grid">
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #4caf50;"></div>
+                        <span><strong>Aperta</strong></span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #f44336;"></div>
+                        <span><strong>Chiusa</strong></span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #2196f3;"></div>
+                        <span><strong>Filtrazione</strong></span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #ff9800;"></div>
+                        <span><strong>Controlavaggio</strong></span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #9c27b0;"></div>
+                        <span><strong>Pre-Filtro BW</strong></span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="alert-box">
+                <h4>⚡ Riferimento Rapido</h4>
+                <ul>
+                    <li>• <strong>MCM:</strong> Module Clean Module - Un modulo filtra mentre l'altro si auto-pulisce</li>
+                    <li>• <strong>BW:</strong> Controlavaggio automatico ogni 60 minuti (predefinito)</li>
+                    <li>• <strong>CEB:</strong> Controlavaggio Chimico ogni 24 BW (predefinito)</li>
+                    <li>• <strong>Pressione Normale:</strong> 0.5-1 bar (7-15 PSI)</li>
+                    <li>• <strong>ΔP Normale:</strong> 0.6-1.2 bar (9-18 PSI)</li>
+                    <li>• <strong>Flusso Nominale:</strong> 5 m³/h (20 GPM)</li>
+                </ul>
+            </div>
+        </div>
     </div>
-  </header>
-
-  <main class="container">
-    <section class="hero">
-      <h2>Impara con piccole simulazioni interattive</h2>
-      <p>Inizia con una demo sotto: muovi il mouse per interagire. In seguito potremo aggiungere spiegazioni, esercizi e quiz.</p>
-    </section>
-
-    <section class="simwrap">
-      <div class="controls">
-        <label>Demo:
-          <select id="demo-select">
-            <option value="fluid">Fluidodinamica (particle flow)</option>
-            <option value="quantum">Meccanica quantistica (onda 1D)</option>
-          </select>
-        </label>
-        <button id="btn-reset">Reset</button>
-      </div>
-
-      <div class="canvaswrap">
-        <canvas id="simCanvas"></canvas>
-      </div>
-
-      <div class="caption" id="caption">Demo: Fluidodinamica — usa il mouse per spostare le particelle.</div>
-    </section>
-
-    <section class="howto">
-      <h3>Come mettere online (GitHub Pages)</h3>
-      <ol>
-        <li>Crea un account su <a href="https://github.com" target="_blank" rel="noopener">GitHub</a> se non l'hai già.</li>
-        <li>Crea un nuovo repository con nome <code>TUOUSERNAME.github.io</code> (sostituisci TUOUSERNAME).</li>
-        <li>Carica i file di questo pacchetto (index.html, styles.css, script.js, README.md) nella root del repository.</li>
-        <li>Visita <code>https://TUOUSERNAME.github.io</code> dopo qualche minuto.</li>
-      </ol>
-    </section>
-  </main>
-
-  <footer class="site-footer container">
-    <small>Creato per te — pronto per essere personalizzato. — &copy; 2025</small>
-  </footer>
-
-  <script src="script.js" type="module"></script>
+    
+    <script>
+        const modes = {
+            filtration: {
+                name: 'FILTRAZIONE',
+                description: 'Modalità operativa normale - Produzione continua di acqua purificata',
+                pump: 'Potenza Filtrazione: 80%',
+                flow: 'Acqua grezza → Pre-filtro → Modulo 1 e 2 in parallelo → Permeato pulito',
+                pressure: 'Ingresso: 15-22 psi (1.5-2 bar) | ΔP: 9-18 psi (0.6-1.2 bar)',
+                valves: {
+                    'XV-1': { status: 'Aperta', class: 'open' },
+                    'XV-2': { status: 'Chiusa', class: 'closed' },
+                    'XV-3': { status: 'Filtrazione', class: 'filtration' },
+                    'XV-4': { status: 'Filtrazione', class: 'filtration' },
+                    'XV-5': { status: 'Chiusa', class: 'closed' },
+                    'XV-6A/B': { status: 'Filtrazione', class: 'filtration' }
+                }
+            },
+            bw1: {
+                name: 'CONTROLAVAGGIO MODULO #1',
+                description: 'Il Modulo 2 filtra e pulisce il Modulo 1 con acqua pulita',
+                pump: 'Potenza BW: 85%',
+                flow: 'Acqua grezza → Modulo 2 (filtrazione) → Permeato → Lava Modulo 1 → Scarico',
+                pressure: 'Pressione BW: 30-37 psi (2-2.5 bar) | Flusso BW: 20-26 GPM (5-6 m³/h)',
+                valves: {
+                    'XV-1': { status: 'Aperta', class: 'open' },
+                    'XV-2': { status: 'Chiusa', class: 'closed' },
+                    'XV-3': { status: 'Filtrazione', class: 'filtration' },
+                    'XV-4': { status: 'Controlavaggio', class: 'backwash' },
+                    'XV-5': { status: 'Chiusa', class: 'closed' },
+                    'XV-6A/B': { status: 'Filtrazione', class: 'filtration' }
+                }
+            },
+            bw2: {
+                name: 'CONTROLAVAGGIO MODULO #2',
+                description: 'Il Modulo 1 filtra e pulisce il Modulo 2 con acqua pulita',
+                pump: 'Potenza BW: 85%',
+                flow: 'Acqua grezza → Modulo 1 (filtrazione) → Permeato → Lava Modulo 2 → Scarico',
+                pressure: 'Pressione BW: 30-37 psi (2-2.5 bar) | Flusso BW: 20-26 GPM (5-6 m³/h)',
+                valves: {
+                    'XV-1': { status: 'Aperta', class: 'open' },
+                    'XV-2': { status: 'Chiusa', class: 'closed' },
+                    'XV-3': { status: 'Controlavaggio', class: 'backwash' },
+                    'XV-4': { status: 'Filtrazione', class: 'filtration' },
+                    'XV-5': { status: 'Chiusa', class: 'closed' },
+                    'XV-6A/B': { status: 'Filtrazione', class: 'filtration' }
+                }
+            },
+            ceb_dosing1: {
+                name: 'CEB - DOSAGGIO MODULO #1',
+                description: 'Iniezione soluzione NaOCl/H₂O₂ nel Modulo 1 tramite Venturi',
+                pump: 'Potenza CEB: 50%',
+                flow: 'Acqua + NaOCl → Modulo 2 (filtrazione) → Permeato + Chimico → Modulo 1',
+                pressure: 'Concentrazione: 1000 ppm NaOCl (12-13%) o H₂O₂ (10%)',
+                chemical: '⚠️ CHIMICO ATTIVO: NaOCl 12-13% o H₂O₂ 10% a 1000 ppm',
+                valves: {
+                    'XV-1': { status: 'Aperta', class: 'open' },
+                    'XV-2': { status: 'Chiusa', class: 'closed' },
+                    'XV-3': { status: 'Filtrazione', class: 'filtration' },
+                    'XV-4': { status: 'Controlavaggio', class: 'backwash' },
+                    'XV-5': { status: 'Aperta', class: 'open' },
+                    'XV-6A/B': { status: 'Filtrazione', class: 'filtration' }
+                }
+            },
+            ceb_dosing2: {
+                name: 'CEB - DOSAGGIO MODULO #2',
+                description: 'Iniezione soluzione NaOCl/H₂O₂ nel Modulo 2 tramite Venturi',
+                pump: 'Potenza CEB: 50%',
+                flow: 'Acqua + NaOCl → Modulo 1 (filtrazione) → Permeato + Chimico → Modulo 2',
+                pressure: 'Concentrazione: 1000 ppm NaOCl (12-13%) o H₂O₂ (10%)',
+                chemical: '⚠️ CHIMICO ATTIVO: NaOCl 12-13% o H₂O₂ 10% a 1000 ppm',
+                valves: {
+                    'XV-1': { status: 'Aperta', class: 'open' },
+                    'XV-2': { status: 'Chiusa', class: 'closed' },
+                    'XV-3': { status: 'Controlavaggio', class: 'backwash' },
+                    'XV-4': { status: 'Filtrazione', class: 'filtration' },
+                    'XV-5': { status: 'Aperta', class: 'open' },
+                    'XV-6A/B': { status: 'Filtrazione', class: 'filtration' }
+                }
+            },
+            ceb_soaking: {
+                name: 'CEB - AMMOLLO',
+                description: 'Sistema in pausa - Tempo di contatto chimico con le membrane',
+                pump: '⏸️ POMPA FERMA - Sistema in pausa',
+                flow: 'Sistema fermo - Soluzione chimica a contatto con membrane per alcuni minuti',
+                pressure: 'Durata ammollo: Variabile secondo carico inquinante (tipicamente 5-10 min)',
+                chemical: '🕐 TEMPO DI CONTATTO: La soluzione chimica agisce sulle membrane',
+                valves: {
+                    'XV-1': { status: 'Chiusa', class: 'closed' },
+                    'XV-2': { status: 'Chiusa', class: 'closed' },
+                    'XV-3': { status: 'Filtrazione', class: 'filtration' },
+                    'XV-4': { status: 'Filtrazione', class: 'filtration' },
+                    'XV-5': { status: 'Chiusa', class: 'closed' },
+                    'XV-6A/B': { status: 'Filtrazione', class: 'filtration' }
+                }
+            },
+            ceb_rinsing1: {
+                name: 'CEB - RISCIACQUO MODULO #1',
+                description: 'Rimozione residui chimici dal Modulo 1 con BW normale',
+                pump: 'Potenza BW: 85%',
+                flow: 'Acqua grezza → Modulo 2 → Permeato pulito → Risciacqua Modulo 1 → Scarico',
+                pressure: 'BW normale per rimuovere completamente NaOCl/H₂O₂',
+                chemical: '💧 RISCIACQUO: Rimozione completa residui chimici',
+                valves: {
+                    'XV-1': { status: 'Aperta', class: 'open' },
+                    'XV-2': { status: 'Chiusa', class: 'closed' },
+                    'XV-3': { status: 'Filtrazione', class: 'filtration' },
+                    'XV-4': { status: 'Controlavaggio', class: 'backwash' },
+                    'XV-5': { status: 'Chiusa', class: 'closed' },
+                    'XV-6A/B': { status: 'Filtrazione', class: 'filtration' }
+                }
+            },
+            ceb_rinsing2: {
+                name: 'CEB - RISCIACQUO MODULO #2',
+                description: 'Rimozione residui chimici dal Modulo 2 con BW normale',
+                pump: 'Potenza BW: 85%',
+                flow: 'Acqua grezza → Modulo 1 → Permeato pulito → Risciacqua Modulo 2 → Scarico',
+                pressure: 'BW normale per rimuovere completamente NaOCl/H₂O₂',
+                chemical: '💧 RISCIACQUO: Rimozione completa residui chimici',
+                valves: {
+                    'XV-1': { status: 'Aperta', class: 'open' },
+                    'XV-2': { status: 'Chiusa', class: 'closed' },
+                    'XV-3': { status: 'Controlavaggio', class: 'backwash' },
+                    'XV-4': { status: 'Filtrazione', class: 'filtration' },
+                    'XV-5': { status: 'Chiusa', class: 'closed' },
+                    'XV-6A/B': { status: 'Filtrazione', class: 'filtration' }
+                }
+            },
+            prefilter_bw: {
+                name: 'CONTROLAVAGGIO PRE-FILTRO',
+                description: 'Pulizia automatica dischi pre-filtro SpinKlin',
+                pump: 'Potenza Pre-Filtro BW: 100%',
+                flow: 'Acqua grezza → Pre-filtro (pulizia dischi) → Scarico',
+                pressure: 'Trigger: ΔP Pre-filtro > 0.5 bar (7 PSI) sopra valore iniziale',
+                valves: {
+                    'XV-1': { status: 'Aperta', class: 'open' },
+                    'XV-2': { status: 'Chiusa', class: 'closed' },
+                    'XV-3': { status: 'Filtrazione', class: 'filtration' },
+                    'XV-4': { status: 'Filtrazione', class: 'filtration' },
+                    'XV-5': { status: 'Chiusa', class: 'closed' },
+                    'XV-6A/B': { status: 'BW Pre-Filtro', class: 'prefilter' }
+                }
+            }
+        };
+        
+        function changeMode(modeKey, button) {
+            const mode = modes[modeKey];
+            
+            // Update buttons
+            document.querySelectorAll('.mode-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            button.classList.add('active');
+            
+            // Update mode info
+            let chemicalBox = '';
+            if (mode.chemical) {
+                chemicalBox = `
+                    <div class="info-box" style="background: #fff3cd; border-left: 4px solid #ffc107;">
+                        <strong style="color: #856404;">⚗️ Chimico:</strong>
+                        <span style="color: #856404;">${mode.chemical}</span>
+                    </div>
+                `;
+            }
+            
+            document.getElementById('mode-info').innerHTML = `
+                <div class="mode-info">
+                    <h2>${mode.name}</h2>
+                    <p style="color: #424242; font-size: 1.1em; line-height: 1.6; margin-top: 10px;">${mode.description}</p>
+                    <div class="info-grid">
+                        <div class="info-box">
+                            <strong>⚙️ Pompa:</strong>
+                            <span>${mode.pump}</span>
+                        </div>
+                        <div class="info-box">
+                            <strong>➡️ Flusso:</strong>
+                            <span>${mode.flow}</span>
+                        </div>
+                        <div class="info-box">
+                            <strong>📊 Parametri:</strong>
+                            <span>${mode.pressure}</span>
+                        </div>
+                        ${chemicalBox}
+                    </div>
+                </div>
+            `;
+            
+            // Update valve table
+            let tableRows = '';
+            for (const [valve, info] of Object.entries(mode.valves)) {
+                tableRows += `
+                    <tr>
+                        <td style="font-weight: bold; font-size: 1.1em;">${valve}</td>
+                        <td style="text-align: center;">
+                            <span class="status-badge status-${info.class}">${info.status}</span>
+                        </td>
+                        <td style="text-align: center;">
+                            <div class="indicator indicator-${info.class}"></div>
+                        </td>
+                    </tr>
+                `;
+            }
+            
+            document.getElementById('valve-table').innerHTML = `
+                <table class="valve-table">
+                    <thead>
+                        <tr>
+                            <th>🔧 Valvola</th>
+                            <th style="text-align: center;">📊 Stato</th>
+                            <th style="text-align: center;">💡 Indicatore</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${tableRows}
+                    </tbody>
+                </table>
+            `;
+            
+            // Simple visual diagram
+            document.getElementById('visual-diagram').innerHTML = `
+                <div class="visual-diagram">
+                    <h3>🎨 Schema Visuale Sistema</h3>
+                    <div class="flow-container">
+                        <div style="text-align: center; font-size: 1.2em; color: #1565c0; font-weight: bold; padding: 20px; background: white; border-radius: 10px; margin: 20px 0;">
+                            ${mode.flow}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Initialize
+        changeMode('filtration', document.querySelector('.mode-btn'));
+    </script>
 </body>
 </html>
